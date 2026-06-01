@@ -28,6 +28,9 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     private val _balance = MutableLiveData(0.0)
     val balance: LiveData<Double> = _balance
 
+    private val _selectedTransaction = MutableLiveData<TransactionEntity?>()
+    val selectedTransaction: LiveData<TransactionEntity?> = _selectedTransaction
+
     init {
         val databaseHelper = KasichkaDatabaseHelper(application)
         val localDataSource = TransactionLocalDataSource(databaseHelper)
@@ -77,8 +80,11 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun getTransactionById(id: Int): TransactionEntity? {
-        return repository.getTransactionById(id)
+    fun loadTransactionById(id: Int) {
+        executor.execute {
+            val transaction = repository.getTransactionById(id)
+            _selectedTransaction.postValue(transaction)
+        }
     }
 
     private fun refreshData() {

@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kasichka.R
 import com.example.kasichka.databinding.FragmentTransactionListBinding
 import com.example.kasichka.viewmodel.TransactionViewModel
+import androidx.core.os.bundleOf
 
 class TransactionListFragment : Fragment() {
 
@@ -49,8 +50,9 @@ class TransactionListFragment : Fragment() {
 
     private fun setupRecyclerView() {
         transactionAdapter = TransactionAdapter(
-            onItemClick = {
-                // Детайлен екран ще добавим в следващ етап.
+            onItemClick = { transaction ->
+                val bundle = bundleOf("transactionId" to transaction.id)
+                findNavController().navigate(R.id.transactionDetailFragment, bundle)
             },
         )
 
