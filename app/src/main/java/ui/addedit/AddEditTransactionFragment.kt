@@ -1,16 +1,21 @@
 package com.example.kasichka.ui.addedit
 
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.kasichka.data.local.TransactionEntity
 import com.example.kasichka.databinding.FragmentAddEditTransactionBinding
 import com.example.kasichka.viewmodel.TransactionViewModel
+import java.io.File
 
 class AddEditTransactionFragment : Fragment() {
 
@@ -21,6 +26,25 @@ class AddEditTransactionFragment : Fragment() {
 
     private var transactionId: Int = -1
     private var currentTransaction: TransactionEntity? = null
+
+    private var currentPhotoPath: String? = null
+    private var temporaryPhotoFile: File? = null
+
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture(),
+    ) { success ->
+        if (success) {
+            val photoFile = temporaryPhotoFile
+
+            if (photoFile != null) {
+                currentPhotoPath = photoFile.absolutePath
+                showPhotoPreview(photoFile.absolutePath)
+                Toast.makeText(requireContext(), "Снимката е добавена.", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(requireContext(), "Снимката не беше запазена.", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,6 +87,7 @@ class AddEditTransactionFragment : Fragment() {
             }
 
             currentTransaction = transaction
+            currentPhotoPath = transaction.photoPath
             fillFields(transaction)
         }
     }
@@ -78,11 +103,51 @@ class AddEditTransactionFragment : Fragment() {
         } else {
             binding.expenseRadioButton.isChecked = true
         }
+
+        transaction.photoPath?.let { photoPath ->
+            showPhotoPreview(photoPath)
+        }
     }
 
     private fun setupClickListeners() {
+        binding.takePhotoButton.setOnClickListener {
+            openCamera()
+        }
+
         binding.saveButton.setOnClickListener {
             saveTransaction()
+        }
+    }
+
+    private fun openCamera() {
+        val photoFile = createImageFile()
+        temporaryPhotoFile = photoFile
+
+        val photoUri: Uri = FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            photoFile,
+        )
+
+        takePictureLauncher.launch(photoUri)
+    }
+
+    private fun createImageFile(): File {
+        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
+        return File.createTempFile(
+            "receipt_${System.currentTimeMillis()}_",
+            ".jpg",
+            storageDir,
+        )
+    }
+
+    private fun showPhotoPreview(photoPath: String) {
+        val photoFile = File(photoPath)
+
+        if (photoFile.exists()) {
+            binding.receiptPreviewImageView.setImageURI(Uri.fromFile(photoFile))
+            binding.receiptPreviewImageView.visibility = View.VISIBLE
         }
     }
 
@@ -153,7 +218,7 @@ class AddEditTransactionFragment : Fragment() {
             description = description,
             date = System.currentTimeMillis(),
             note = note.ifEmpty { null },
-            photoPath = null,
+            photoPath = currentPhotoPath,
         )
 
         transactionViewModel.insertTransaction(transaction)
@@ -182,6 +247,7 @@ class AddEditTransactionFragment : Fragment() {
             category = category,
             description = description,
             note = note.ifEmpty { null },
+            photoPath = currentPhotoPath,
         )
 
         transactionViewModel.updateTransaction(updatedTransaction)

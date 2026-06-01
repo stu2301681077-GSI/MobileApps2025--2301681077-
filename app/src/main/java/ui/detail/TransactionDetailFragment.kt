@@ -17,6 +17,8 @@ import java.util.Date
 import java.util.Locale
 import androidx.core.os.bundleOf
 import com.example.kasichka.R
+import android.net.Uri
+import java.io.File
 
 class TransactionDetailFragment : Fragment() {
 
@@ -91,6 +93,27 @@ class TransactionDetailFragment : Fragment() {
         binding.categoryValueTextView.text = "Категория: ${transaction.category}"
         binding.dateValueTextView.text = "Дата: ${formatDate(transaction.date)}"
         binding.noteValueTextView.text = "Бележка: ${transaction.note ?: "-"}"
+
+        showReceiptPhoto(transaction.photoPath)
+    }
+
+    private fun showReceiptPhoto(photoPath: String?) {
+        if (photoPath.isNullOrEmpty()) {
+            binding.receiptTitleTextView.visibility = View.GONE
+            binding.receiptImageView.visibility = View.GONE
+            return
+        }
+
+        val photoFile = File(photoPath)
+
+        if (photoFile.exists()) {
+            binding.receiptImageView.setImageURI(Uri.fromFile(photoFile))
+            binding.receiptTitleTextView.visibility = View.VISIBLE
+            binding.receiptImageView.visibility = View.VISIBLE
+        } else {
+            binding.receiptTitleTextView.visibility = View.GONE
+            binding.receiptImageView.visibility = View.GONE
+        }
     }
 
     private fun setupClickListeners() {
