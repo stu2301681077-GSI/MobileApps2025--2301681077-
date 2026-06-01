@@ -8,8 +8,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.example.kasichka.databinding.FragmentAddEditTransactionBinding
 import com.example.kasichka.data.local.TransactionEntity
+import com.example.kasichka.databinding.FragmentAddEditTransactionBinding
 import com.example.kasichka.viewmodel.TransactionViewModel
 
 class AddEditTransactionFragment : Fragment() {
@@ -18,6 +18,9 @@ class AddEditTransactionFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val transactionViewModel: TransactionViewModel by activityViewModels()
+
+    private var transactionId: Int = -1
+    private var currentTransaction: TransactionEntity? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,6 +37,50 @@ class AddEditTransactionFragment : Fragment() {
     ) {
         super.onViewCreated(view, savedInstanceState)
 
+        transactionId = arguments?.getInt(ARG_TRANSACTION_ID) ?: -1
+
+        setupScreenMode()
+        setupClickListeners()
+    }
+
+    private fun setupScreenMode() {
+        if (transactionId == -1) {
+            binding.titleTextView.text = "Добавяне на транзакция"
+            binding.saveButton.text = "Запази"
+        } else {
+            binding.titleTextView.text = "Редактиране на транзакция"
+            binding.saveButton.text = "Запази промените"
+
+            observeTransactionForEdit()
+            transactionViewModel.loadTransactionById(transactionId)
+        }
+    }
+
+    private fun observeTransactionForEdit() {
+        transactionViewModel.selectedTransaction.observe(viewLifecycleOwner) { transaction ->
+            if (transaction == null || transaction.id != transactionId) {
+                return@observe
+            }
+
+            currentTransaction = transaction
+            fillFields(transaction)
+        }
+    }
+
+    private fun fillFields(transaction: TransactionEntity) {
+        binding.amountEditText.setText(transaction.amount.toString())
+        binding.categoryEditText.setText(transaction.category)
+        binding.descriptionEditText.setText(transaction.description)
+        binding.noteEditText.setText(transaction.note.orEmpty())
+
+        if (transaction.type == TransactionViewModel.TYPE_INCOME) {
+            binding.incomeRadioButton.isChecked = true
+        } else {
+            binding.expenseRadioButton.isChecked = true
+        }
+    }
+
+    private fun setupClickListeners() {
         binding.saveButton.setOnClickListener {
             saveTransaction()
         }
@@ -73,6 +120,32 @@ class AddEditTransactionFragment : Fragment() {
             TransactionViewModel.TYPE_EXPENSE
         }
 
+        if (transactionId == -1) {
+            createTransaction(
+                amount = amount,
+                type = type,
+                category = category,
+                description = description,
+                note = note,
+            )
+        } else {
+            updateTransaction(
+                amount = amount,
+                type = type,
+                category = category,
+                description = description,
+                note = note,
+            )
+        }
+    }
+
+    private fun createTransaction(
+        amount: Double,
+        type: String,
+        category: String,
+        description: String,
+        note: String,
+    ) {
         val transaction = TransactionEntity(
             amount = amount,
             type = type,
@@ -86,12 +159,43 @@ class AddEditTransactionFragment : Fragment() {
         transactionViewModel.insertTransaction(transaction)
 
         Toast.makeText(requireContext(), "Транзакцията е запазена.", Toast.LENGTH_SHORT).show()
+        findNavController().popBackStack()
+    }
 
+    private fun updateTransaction(
+        amount: Double,
+        type: String,
+        category: String,
+        description: String,
+        note: String,
+    ) {
+        val oldTransaction = currentTransaction
+
+        if (oldTransaction == null) {
+            Toast.makeText(requireContext(), "Транзакцията не е заредена.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val updatedTransaction = oldTransaction.copy(
+            amount = amount,
+            type = type,
+            category = category,
+            description = description,
+            note = note.ifEmpty { null },
+        )
+
+        transactionViewModel.updateTransaction(updatedTransaction)
+
+        Toast.makeText(requireContext(), "Промените са запазени.", Toast.LENGTH_SHORT).show()
         findNavController().popBackStack()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        const val ARG_TRANSACTION_ID = "transactionId"
     }
 }

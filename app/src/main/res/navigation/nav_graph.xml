@@ -22,7 +22,14 @@
     <fragment
         android:id="@+id/addEditTransactionFragment"
         android:name="com.example.kasichka.ui.addedit.AddEditTransactionFragment"
-        android:label="Добавяне" />
+        android:label="Добавяне">
+
+        <argument
+            android:name="transactionId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/transactionDetailFragment"

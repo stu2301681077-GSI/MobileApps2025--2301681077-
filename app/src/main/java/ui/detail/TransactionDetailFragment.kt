@@ -15,6 +15,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.os.bundleOf
+import com.example.kasichka.R
 
 class TransactionDetailFragment : Fragment() {
 
@@ -92,6 +94,13 @@ class TransactionDetailFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+        binding.editButton.setOnClickListener {
+            val transaction = currentTransaction ?: return@setOnClickListener
+
+            val bundle = bundleOf(ARG_TRANSACTION_ID to transaction.id)
+            findNavController().navigate(R.id.addEditTransactionFragment, bundle)
+        }
+
         binding.deleteButton.setOnClickListener {
             showDeleteDialog()
         }
