@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.kasichka.R
 import com.example.kasichka.databinding.FragmentTransactionListBinding
 
 class TransactionListFragment : Fragment() {
@@ -19,6 +21,17 @@ class TransactionListFragment : Fragment() {
     ): View {
         _binding = FragmentTransactionListBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.addTransactionButton.setOnClickListener {
+            findNavController().navigate(R.id.addEditTransactionFragment)
+        }
     }
 
     override fun onDestroyView() {

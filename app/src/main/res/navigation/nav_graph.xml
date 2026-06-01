@@ -19,4 +19,9 @@
         android:name="com.example.kasichka.ui.stats.StatsFragment"
         android:label="Статистика" />
 
+    <fragment
+        android:id="@+id/addEditTransactionFragment"
+        android:name="com.example.kasichka.ui.addedit.AddEditTransactionFragment"
+        android:label="Добавяне" />
+
 </navigation>
