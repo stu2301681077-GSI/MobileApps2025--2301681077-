@@ -95,6 +95,6 @@ Fragment → ViewModel → Repository → LocalDataSource → SQLite Database
 
 ## APK
 
-Release APK файлът ще бъде добавен в папка:
+Release APK файлът е добавен в папка:
 
 `/apk/app-release.apk`
