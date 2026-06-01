@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/dashboardFragment">
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.example.kasichka.ui.dashboard.DashboardFragment"
+        android:label="Начало" />
+
+    <fragment
+        android:id="@+id/transactionListFragment"
+        android:name="com.example.kasichka.ui.transactions.TransactionListFragment"
+        android:label="Транзакции" />
+
+    <fragment
+        android:id="@+id/statsFragment"
+        android:name="com.example.kasichka.ui.stats.StatsFragment"
+        android:label="Статистика" />
+
+</navigation>
