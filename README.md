@@ -115,7 +115,7 @@ class TransactionRepository(
 1. Клониране на repository:
 
 ```bash
-git clone https://github.com/stu2301681077-GSI/MobileApps2025-2301681077.git
+git clone https://github.com/stu2301681077-GSI/MobileApps2025--2301681077-.git
 ```
 
 2. Отваряне на проекта в **Android Studio**.
@@ -224,5 +224,5 @@ UI тестът проверява основен потребителски с�
 Repository-то е публично и е създадено според изискването:
 
 ```text
-MobileApps2025-2301681077
+MobileApps2025--2301681077-
 ```
