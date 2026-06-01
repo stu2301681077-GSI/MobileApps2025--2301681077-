@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import android.content.Intent
 
 class StatsFragment : Fragment() {
 
@@ -62,6 +63,10 @@ class StatsFragment : Fragment() {
     private fun setupClickListeners() {
         binding.generateQrButton.setOnClickListener {
             showQrReportDialog()
+        }
+
+        binding.shareReportButton.setOnClickListener {
+            shareMonthlyReport()
         }
     }
 
@@ -123,6 +128,23 @@ class StatsFragment : Fragment() {
             .show()
     }
 
+    private fun shareMonthlyReport() {
+        val reportText = buildShareReportText()
+
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "Касичка — месечен финансов отчет")
+            putExtra(Intent.EXTRA_TEXT, reportText)
+        }
+
+        val chooser = Intent.createChooser(
+            shareIntent,
+            "Сподели финансовия отчет чрез",
+        )
+
+        startActivity(chooser)
+    }
+
     private fun buildMonthlyReportText(): String {
         return """
         Kasichka - Monthly Report
@@ -130,6 +152,19 @@ class StatsFragment : Fragment() {
         Income: ${formatMoneyForQr(currentMonthIncome)}
         Expense: ${formatMoneyForQr(currentMonthExpense)}
         Balance: ${formatMoneyForQr(currentMonthBalance)}
+    """.trimIndent()
+    }
+
+    private fun buildShareReportText(): String {
+        return """
+        Касичка — Месечен финансов отчет
+        
+        Месец: ${getCurrentMonthLabel()}
+        Приходи: ${formatMoney(currentMonthIncome)}
+        Разходи: ${formatMoney(currentMonthExpense)}
+        Баланс: ${formatMoney(currentMonthBalance)}
+        
+        Отчетът е генериран от приложението Касичка.
     """.trimIndent()
     }
 
