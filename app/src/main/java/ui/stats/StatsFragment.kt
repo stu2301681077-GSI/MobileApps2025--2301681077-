@@ -21,6 +21,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import android.content.Intent
+import com.example.kasichka.util.TransactionCalculator
 
 class StatsFragment : Fragment() {
 
@@ -72,19 +73,28 @@ class StatsFragment : Fragment() {
 
     private fun observeStats() {
         transactionViewModel.allTransactions.observe(viewLifecycleOwner) { transactions ->
-            val currentMonthTransactions = transactions.filter { transaction ->
-                isCurrentMonth(transaction.date)
-            }
+            val calendar = Calendar.getInstance()
 
-            val totalIncome = currentMonthTransactions
-                .filter { it.type == TransactionViewModel.TYPE_INCOME }
-                .sumOf { it.amount }
+            val currentMonthTransactions = TransactionCalculator.filterByMonth(
+                transactions = transactions,
+                year = calendar.get(Calendar.YEAR),
+                month = calendar.get(Calendar.MONTH),
+            )
 
-            val totalExpense = currentMonthTransactions
-                .filter { it.type == TransactionViewModel.TYPE_EXPENSE }
-                .sumOf { it.amount }
+            val totalIncome = TransactionCalculator.calculateTotalByType(
+                transactions = currentMonthTransactions,
+                type = TransactionViewModel.TYPE_INCOME,
+            )
 
-            val balance = totalIncome - totalExpense
+            val totalExpense = TransactionCalculator.calculateTotalByType(
+                transactions = currentMonthTransactions,
+                type = TransactionViewModel.TYPE_EXPENSE,
+            )
+
+            val balance = TransactionCalculator.calculateBalance(
+                income = totalIncome,
+                expense = totalExpense,
+            )
 
             currentMonthIncome = totalIncome
             currentMonthExpense = totalExpense
@@ -192,11 +202,10 @@ class StatsFragment : Fragment() {
         binding.emptyCategoriesTextView.visibility = View.GONE
         binding.categoriesContainer.visibility = View.VISIBLE
 
-        val categoryTotals = expenseTransactions
-            .groupBy { it.category }
-            .mapValues { entry ->
-                entry.value.sumOf { transaction -> transaction.amount }
-            }
+        val categoryTotals = TransactionCalculator.getExpenseTotalsByCategory(
+            transactions = expenseTransactions,
+            expenseType = TransactionViewModel.TYPE_EXPENSE,
+        )
             .toList()
             .sortedByDescending { it.second }
 

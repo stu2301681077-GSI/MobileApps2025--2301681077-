@@ -16,6 +16,7 @@ import com.example.kasichka.data.local.TransactionEntity
 import com.example.kasichka.databinding.FragmentAddEditTransactionBinding
 import com.example.kasichka.viewmodel.TransactionViewModel
 import java.io.File
+import com.example.kasichka.util.TransactionValidator
 
 class AddEditTransactionFragment : Fragment() {
 
@@ -157,24 +158,19 @@ class AddEditTransactionFragment : Fragment() {
         val description = binding.descriptionEditText.text.toString().trim()
         val note = binding.noteEditText.text.toString().trim()
 
-        if (amountText.isEmpty()) {
-            Toast.makeText(requireContext(), "Моля, въведете сума.", Toast.LENGTH_SHORT).show()
-            return
-        }
+        val amount = TransactionValidator.parseAmount(amountText)
 
-        val amount = amountText.toDoubleOrNull()
-
-        if (amount == null || amount <= 0.0) {
+        if (amount == null) {
             Toast.makeText(requireContext(), "Моля, въведете валидна сума.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (category.isEmpty()) {
+        if (!TransactionValidator.isRequiredTextValid(category)) {
             Toast.makeText(requireContext(), "Моля, въведете категория.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (description.isEmpty()) {
+        if (!TransactionValidator.isRequiredTextValid(description)) {
             Toast.makeText(requireContext(), "Моля, въведете описание.", Toast.LENGTH_SHORT).show()
             return
         }
