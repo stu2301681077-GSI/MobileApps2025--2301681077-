@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -12,7 +13,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.kasichka.data.local.TransactionEntity
 import com.example.kasichka.databinding.FragmentStatsBinding
+import com.example.kasichka.util.QrCodeGenerator
 import com.example.kasichka.viewmodel.TransactionViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -24,6 +27,10 @@ class StatsFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val transactionViewModel: TransactionViewModel by activityViewModels()
+
+    private var currentMonthIncome: Double = 0.0
+    private var currentMonthExpense: Double = 0.0
+    private var currentMonthBalance: Double = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,6 +48,8 @@ class StatsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.monthTextView.text = "Текущ месец: ${getCurrentMonthLabel()}"
+
+        setupClickListeners()
         observeStats()
     }
 
@@ -48,6 +57,12 @@ class StatsFragment : Fragment() {
         super.onResume()
         transactionViewModel.loadTransactions()
         transactionViewModel.loadTotals()
+    }
+
+    private fun setupClickListeners() {
+        binding.generateQrButton.setOnClickListener {
+            showQrReportDialog()
+        }
     }
 
     private fun observeStats() {
@@ -66,6 +81,10 @@ class StatsFragment : Fragment() {
 
             val balance = totalIncome - totalExpense
 
+            currentMonthIncome = totalIncome
+            currentMonthExpense = totalExpense
+            currentMonthBalance = balance
+
             binding.incomeStatsValueTextView.text = formatMoney(totalIncome)
             binding.expenseStatsValueTextView.text = formatMoney(totalExpense)
             binding.balanceStatsValueTextView.text = formatMoney(balance)
@@ -79,6 +98,48 @@ class StatsFragment : Fragment() {
                 totalExpense = totalExpense,
             )
         }
+    }
+
+    private fun showQrReportDialog() {
+        val reportText = buildMonthlyReportText()
+        val qrBitmap = QrCodeGenerator.generateQrCode(reportText)
+
+        val imageView = ImageView(requireContext()).apply {
+            setImageBitmap(qrBitmap)
+            adjustViewBounds = true
+            setPadding(
+                24.dp(),
+                24.dp(),
+                24.dp(),
+                24.dp(),
+            )
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("QR отчет")
+            .setMessage("Сканирайте QR кода, за да видите месечния финансов отчет.")
+            .setView(imageView)
+            .setPositiveButton("Затвори", null)
+            .show()
+    }
+
+    private fun buildMonthlyReportText(): String {
+        return """
+        Kasichka - Monthly Report
+        Month: ${getCurrentMonthLabelForQr()}
+        Income: ${formatMoneyForQr(currentMonthIncome)}
+        Expense: ${formatMoneyForQr(currentMonthExpense)}
+        Balance: ${formatMoneyForQr(currentMonthBalance)}
+    """.trimIndent()
+    }
+
+    private fun getCurrentMonthLabelForQr(): String {
+        val formatter = SimpleDateFormat("MMMM yyyy", Locale.US)
+        return formatter.format(Date())
+    }
+
+    private fun formatMoneyForQr(value: Double): String {
+        return "${String.format(Locale.US, "%.2f", value)} EUR"
     }
 
     private fun showCategoryStats(

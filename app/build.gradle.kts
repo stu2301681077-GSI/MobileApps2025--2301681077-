@@ -56,4 +56,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.10.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
+
+    //QR
+    implementation("com.google.zxing:core:3.5.3")
 }
